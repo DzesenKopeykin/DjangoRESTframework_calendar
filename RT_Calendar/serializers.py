@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework import serializers
+from .models import Event
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -15,3 +16,11 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         user.save()
         Token.objects.get_or_create(user=user)
         return user
+
+
+class EventSerializer(serializers.HyperlinkedModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+
+    class Meta:
+        model = Event
+        fields = ('url', 'name', 'user', 'start_datetime', 'end_datetime', 'reminder_hours')
