@@ -1,0 +1,31 @@
+Для запуска потребуются:
+python==3.7
+django==2.2.2
+djangorestframework==3.9.4
+celery==4.3.0
+redis==3.2.1
+
+
+Примеры выполнения запросов:
+
+создать пользователя:
+http post http://127.0.0.1:8000/registration/ email=kopeykindzzesen@gmail.com password=123
+
+получить токен:
+http post http://127.0.0.1:8000/api-token-auth/ username=kopeykindzzesen@gmail.com password=123
+
+получить все события (для этого пользователя):
+http get http://127.0.0.1:8000/events/ 'Authorization: Token e0b7df7bb0ec2791ebf842874066e539a94e98e1'
+
+получить все события за день 2019-06-17:
+http get http://127.0.0.1:8000/events/ 'Authorization: Token baf60e4ea901d5d822c2e773fe580f1de5a2b2cd' day='2019-06-17'
+
+получить все события за месяц 2019-06:
+http get http://127.0.0.1:8000/events/ 'Authorization: Token baf60e4ea901d5d822c2e773fe580f1de5a2b2cd' month='2019-06'
+
+создать событие (без даты окончания):
+reminder_hours -- количество часов до начала события для напоминания
+http post http://127.0.0.1:8000/events/ 'Authorization: Token baf60e4ea901d5d822c2e773fe580f1de5a2b2cd' name='event1' reminder_hours='2' start_date='2019-06-17' start_time='14:00'
+
+создать событие (с датой окончания):
+http post http://127.0.0.1:8000/events/ 'Authorization: Token baf60e4ea901d5d822c2e773fe580f1de5a2b2cd' name='event2' reminder_hours='2' start_date='2019-06-17' start_time='14:00' end_date='2019-06-18' end_time='14:00'
