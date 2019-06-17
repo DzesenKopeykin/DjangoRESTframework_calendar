@@ -1,5 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from datetime import datetime, timedelta
+import pytz
+
+from django.db.models import signals
+import RT_Calendar.tasks as tasks
 
 
 REMINDER_HOURS = ((1, '1'), (2, '2'), (3, '4'), (4, '24'), (5, '168'))
@@ -63,3 +68,14 @@ class Event(models.Model):
 
     class Meta:
         ordering = ('start_date', 'start_time',)
+
+
+def event_post_save(sender, instance, signal, *args, **kwargs):
+    mytime = datetime(instance.start_date.year, instance.start_date.month, instance.start_date.day,
+                      instance.start_time.hour, instance.start_time.minute) - timedelta(hours=instance.reminder_hours)
+    timezone = pytz.timezone('Europe/Minsk')
+    mytime = timezone.localize(mytime)
+    tasks.send_reminder_email.apply_async(args=[instance.pk], eta=mytime)
+
+
+signals.post_save.connect(event_post_save, sender=Event)
