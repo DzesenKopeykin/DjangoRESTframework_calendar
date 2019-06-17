@@ -1,9 +1,9 @@
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import mixins
 from rest_framework import viewsets
-from django.contrib.auth.models import User
 from .serializers import UserSerializer, EventSerializer
-from .models import Event
+from .models import Event, User
+import datetime
 
 
 class UserViewSet(mixins.CreateModelMixin,
@@ -18,4 +18,12 @@ class EventViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, )
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        print(self.request.data)
+        serializer.save(user=self.request.user,
+                        end_date=self.request.data['end_date']
+                            if 'end_date' in self.request.data else self.request.data['start_date'],
+                        end_time=self.request.data['end_time'] if 'end_time' in self.request.data else datetime.time(23, 59)
+                        )
+
+    def get_queryset(self):
+        return Event.objects.filter(user=self.request.user)
