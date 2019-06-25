@@ -5,9 +5,11 @@ import datetime
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
+    country = serializers.CharField(required=False)
+
     class Meta:
         model = User
-        fields = ('email', 'password')
+        fields = ('email', 'password', 'country')
         write_only_fields = ('password',)
 
     def create(self, validated_data):

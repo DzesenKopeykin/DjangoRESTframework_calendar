@@ -44,6 +44,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserAccountManager()
 
     email = models.EmailField('email', unique=True, blank=False, null=False)
+    country = models.CharField('country', max_length=20, default='')
     is_staff = models.BooleanField('staff status', default=False)
     is_active = models.BooleanField('active', default=True)
 
@@ -64,13 +65,16 @@ class Event(models.Model):
     start_time = models.TimeField()
     end_date = models.DateField()
     end_time = models.TimeField()
-    reminder_hours = models.IntegerField(choices=REMINDER_HOURS)
+    reminder_hours = models.IntegerField(choices=REMINDER_HOURS, blank=True, null=True)
+    is_holiday = models.BooleanField(default=False)
 
     class Meta:
         ordering = ('start_date', 'start_time',)
 
 
 def event_post_save(sender, instance, signal, *args, **kwargs):
+    if not instance.reminder_hours:
+        return
     mytime = datetime(instance.start_date.year, instance.start_date.month, instance.start_date.day,
                       instance.start_time.hour, instance.start_time.minute) - timedelta(hours=instance.reminder_hours)
     timezone = pytz.timezone('Europe/Minsk')
@@ -78,4 +82,9 @@ def event_post_save(sender, instance, signal, *args, **kwargs):
     tasks.send_reminder_email.apply_async(args=[instance.pk], eta=mytime)
 
 
+def user_get_holidays(sender, instance, signal, *args, **kwargs):
+    tasks.get_holidays.delay(instance.pk)
+
+
 signals.post_save.connect(event_post_save, sender=Event)
+signals.post_save.connect(user_get_holidays, sender=User)
